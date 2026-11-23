@@ -1,0 +1,57 @@
+# forkfit
+
+**Live demo: https://striv11.github.io/forkfit/** _(planned; deployed by `pages.yml` once the UI lands on Day 4)_
+
+> Tell it your calorie, protein and budget targets; a from-scratch simplex solver finds the cheapest meal plan that hits them, entirely in your browser.
+
+![CI](https://github.com/Striv11/forkfit/actions/workflows/ci.yml/badge.svg)
+
+## Problem
+Hitting nutrition targets (calories, protein, fibre, a sodium ceiling...) while staying on a grocery budget is a constrained optimisation problem. People solve it by guesswork, spreadsheets, or apps that only count calories and never *plan*. This is the classic "diet problem" (Stigler, 1945), the origin story of linear programming, wrapped in a UI a non-developer can use.
+
+## Motivation
+- Implement a real LP solver rather than calling a library: two-phase simplex, degeneracy handling (Bland fallback), infeasibility and unboundedness detection.
+- Turn solver output into something humans trust: "why this plan?" explanations from shadow prices (which target is costing you money?), and a clear message when targets are impossible.
+- Zero backend, zero accounts, no data leaves the device.
+
+## Architecture
+```
+ foods.json ─┐
+ targets  ───┼─► model builder ─► simplex solver ─► plan + explanations ─► UI
+ prefs    ───┘   (Day 2)          (Day 1, done)       (Days 3-4)
+```
+- `src/solver/simplex.ts`: dense two-phase tableau simplex. Minimises `c·x` s.t. `Ax {<=,>=,=} b`, `x >= 0`; upper bounds via `withUpperBounds`. Returns `optimal | infeasible | unbounded`.
+- `src/model/` (planned): foods, nutrient targets, servings limits → LP.
+- `src/ui/` (planned): vanilla TypeScript + Vite, static build.
+
+Invariants: solver never returns a point violating a constraint beyond 1e-7; `x >= 0` always; malformed input throws.
+
+## Setup
+Requires Node 22+.
+```
+npm ci
+npm test          # unit tests
+npm run dev       # dev server
+bash check.sh     # format, types, lint, tests, build (same as CI)
+```
+
+## Demo
+**Planned.** Target: open the page, pick a preset ("2000 kcal, 100 g protein, $8/day"), press `Enter`, and see a plan with per-food servings, cost and a target-by-target breakdown in under a second.
+
+## Design decisions & trade-offs
+- Dense tableau over revised simplex: a meal plan has dozens of variables, not millions; clarity wins.
+- Dantzig pricing with automatic switch to Bland's rule after a stall, so degenerate problems cannot cycle.
+- Continuous servings first; whole-serving rounding (a small branch-and-bound) is a stretch goal.
+
+## Roadmap
+- [x] Day 1: scaffold, CI, simplex solver with tests
+- [ ] Day 2: food database and nutrition model builder
+- [ ] Day 3: shadow prices and plan explanations
+- [ ] Day 4: UI, Pages deploy
+- [ ] Day 5: design system, light/dark, mobile
+- [ ] Day 6: Playwright e2e and performance benchmark
+- [ ] Day 7: polish, screenshots, docs
+See [PLAN.md](PLAN.md).
+
+## License
+MIT. See [LICENSE](LICENSE).
