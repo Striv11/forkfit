@@ -5,7 +5,7 @@ Seven-day arc. Every milestone has acceptance criteria that can be checked by a 
 | Day | Milestone | Acceptance criteria | Status |
 |-----|-----------|---------------------|--------|
 | 1 | Scaffold + simplex solver | `bash check.sh` passes; solver returns correct optimum for textbook LPs, detects infeasible/unbounded, survives Beale's cycling example, matches brute-force vertex enumeration on 60 random 2D LPs; CI and Pages workflows exist | [x] |
-| 2 | Food database + model builder | ~60 foods with per-serving nutrients and price; `buildProblem(foods, targets, limits)` maps to an LP; test: Stigler-style 9-nutrient problem solves to a known cost; per-food max servings respected; infeasible targets yield a typed error | [ ] |
+| 2 | Food database + model builder | ~60 foods with per-serving nutrients and price; `buildProblem(foods, targets, limits)` maps to an LP; test: Stigler-style 9-nutrient problem solves to a known cost; per-food max servings respected; infeasible targets yield a typed error | [x] |
 | 3 | Explanations | Shadow prices (duals) from the final tableau; test: duals satisfy strong duality (`b·y = c·x`); `explain(plan)` names the binding targets and marginal cost per unit; diet presets (vegetarian, vegan) filter foods | [ ] |
 | 4 | UI v1 + Pages | Targets form, food list, plan table with cost; empty state for first-time users; error state for infeasible; `pages.yml` deploys and the live link works; Enter solves | [ ] |
 | 5 | Design system + mobile | CSS tokens (spacing, type scale, colours) with light/dark; usable at 360 px width; keyboard shortcuts (`/` focus, `Enter` solve, `?` help); landing section; loading state | [ ] |

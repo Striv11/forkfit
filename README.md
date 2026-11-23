@@ -18,10 +18,10 @@ Hitting nutrition targets (calories, protein, fibre, a sodium ceiling...) while 
 ```
  foods.json ─┐
  targets  ───┼─► model builder ─► simplex solver ─► plan + explanations ─► UI
- prefs    ───┘   (Day 2)          (Day 1, done)       (Days 3-4)
+ prefs    ───┘   (Day 2, done)     (Day 1, done)       (Days 3-4)
 ```
 - `src/solver/simplex.ts`: dense two-phase tableau simplex. Minimises `c·x` s.t. `Ax {<=,>=,=} b`, `x >= 0`; upper bounds via `withUpperBounds`. Returns `optimal | infeasible | unbounded`.
-- `src/model/` (planned): foods, nutrient targets, servings limits → LP.
+- `src/model/`: `foods.ts` (59 foods, 9 nutrients, diet tag) and `model.ts` (`buildProblem` maps foods + min/max nutrient targets + per-food serving caps to an LP; `planMeal` returns `{ok, plan}` or a typed error: `infeasible | unbounded | no-foods | invalid-input`).
 - `src/ui/` (planned): vanilla TypeScript + Vite, static build.
 
 Invariants: solver never returns a point violating a constraint beyond 1e-7; `x >= 0` always; malformed input throws.
@@ -45,7 +45,7 @@ bash check.sh     # format, types, lint, tests, build (same as CI)
 
 ## Roadmap
 - [x] Day 1: scaffold, CI, simplex solver with tests
-- [ ] Day 2: food database and nutrition model builder
+- [x] Day 2: food database and nutrition model builder
 - [ ] Day 3: shadow prices and plan explanations
 - [ ] Day 4: UI, Pages deploy
 - [ ] Day 5: design system, light/dark, mobile
