@@ -30,6 +30,12 @@ export interface Solution {
   x: number[];
   /** Objective value c·x (NaN unless optimal). */
   objective: number;
+  /**
+   * Shadow prices, one per input constraint (empty unless optimal):
+   * d(objective)/d(b_i), so `b·duals = objective` (strong duality).
+   * Non-negative for `>=` rows, non-positive for `<=` rows.
+   */
+  duals: number[];
   iterations: number;
 }
 
@@ -174,6 +180,7 @@ export function solve(problem: Problem): Solution {
     return { a: k.a.map((v) => -v), op, b: -k.b };
   });
 
+  const flipped = problem.constraints.map((k) => k.b < 0);
   const slackCount = norm.filter((k) => k.op !== "=").length;
   const artCount = norm.filter((k) => k.op !== "<=").length;
   const cols = n + slackCount + artCount;
@@ -181,6 +188,9 @@ export function solve(problem: Problem): Solution {
 
   const rows: number[][] = [];
   const basis: number[] = [];
+  // Column whose reduced cost encodes each row's dual, and its sign.
+  const dualCol: number[] = [];
+  const dualSign: number[] = [];
   let s = n;
   let art = artStart;
   for (const k of norm) {
@@ -189,13 +199,19 @@ export function solve(problem: Problem): Solution {
     row[cols] = k.b;
     if (k.op === "<=") {
       row[s] = 1;
+      dualCol.push(s);
+      dualSign.push(-1);
       basis.push(s++);
     } else if (k.op === ">=") {
+      dualCol.push(s);
+      dualSign.push(1);
       row[s++] = -1;
       row[art] = 1;
       basis.push(art++);
     } else {
       row[art] = 1;
+      dualCol.push(art);
+      dualSign.push(-1);
       basis.push(art++);
     }
     rows.push(row);
@@ -205,6 +221,7 @@ export function solve(problem: Problem): Solution {
     status,
     x: [],
     objective: NaN,
+    duals: [],
     iterations: t.iterations,
   });
   const t = new Tableau(rows, basis, cols);
@@ -240,5 +257,11 @@ export function solve(problem: Problem): Solution {
     if (b < n) x[b] = Math.max(0, t.rows[i]![cols]!);
   });
   const objective = problem.c.reduce((acc, v, j) => acc + v * x[j]!, 0);
-  return { status: "optimal", x, objective, iterations: t.iterations };
+  // Reduced cost of a slack/surplus/artificial column is -/+ the row's dual.
+  // A row negated during normalisation has the opposite dual.
+  const duals = dualCol.map((col, i) => {
+    const y = dualSign[i]! * t.z[col]! * (flipped[i] ? -1 : 1);
+    return Math.abs(y) < 1e-12 ? 0 : y;
+  });
+  return { status: "optimal", x, objective, duals, iterations: t.iterations };
 }

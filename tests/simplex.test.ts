@@ -164,3 +164,42 @@ describe("simplex", () => {
     }
   });
 });
+
+describe("duals", () => {
+  const dot = (b: number[], y: number[]) =>
+    b.reduce((acc, v, i) => acc + v * (y[i] ?? 0), 0);
+
+  it("obeys strong duality with <=, >=, = and negated rows", () => {
+    const p: Problem = {
+      c: [2, 3, 1],
+      constraints: [
+        { a: [1, 1, 1], op: ">=", b: 6 },
+        { a: [1, -1, 0], op: "<=", b: 2 },
+        { a: [-1, 0, -1], op: "<=", b: -2 }, // x0 + x2 >= 2, given negated
+        { a: [0, 1, 1], op: "=", b: 4 },
+      ],
+    };
+    const s = solve(p);
+    expect(s.status).toBe("optimal");
+    expect(
+      dot(
+        p.constraints.map((k) => k.b),
+        s.duals,
+      ),
+    ).toBeCloseTo(s.objective, 7);
+  });
+
+  it("each dual is the derivative of the optimum w.r.t. its rhs", () => {
+    const mk = (b0: number): Problem => ({
+      c: [3, 2],
+      constraints: [
+        { a: [1, 1], op: ">=", b: b0 },
+        { a: [1, 0], op: "<=", b: 4 },
+      ],
+    });
+    const s = solve(mk(5));
+    const s2 = solve(mk(5.5));
+    expect(s.duals[0]).toBeCloseTo(2, 9);
+    expect((s2.objective - s.objective) / 0.5).toBeCloseTo(s.duals[0]!, 7);
+  });
+});
