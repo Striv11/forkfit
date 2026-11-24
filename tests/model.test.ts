@@ -6,6 +6,8 @@ import {
   type NutrientId,
 } from "../src/model/foods";
 import { buildProblem, planMeal, type Targets } from "../src/model/model";
+import { explain, filterByDiet } from "../src/model/explain";
+import { solve } from "../src/solver/simplex";
 
 function food(
   id: string,
@@ -134,5 +136,85 @@ describe("planMeal", () => {
       expect(l.servings).toBeLessThanOrEqual(4 + 1e-9);
     expect(r.plan.cost).toBeGreaterThan(1);
     expect(r.plan.cost).toBeLessThan(15);
+  });
+});
+
+describe("shadow prices and explanations", () => {
+  const foods = [
+    food("a", 2, { calories: 100, protein: 10 }),
+    food("b", 1, { calories: 100, protein: 2 }),
+  ];
+
+  it("satisfies strong duality on the model LP", () => {
+    const targets: Targets = { calories: { min: 500 }, protein: { min: 40 } };
+    const model = buildProblem(foods, targets, { maxServings: 10 });
+    const sol = solve(model.problem);
+    const by = model.problem.constraints.reduce(
+      (acc, k, i) => acc + k.b * (sol.duals[i] ?? 0),
+      0,
+    );
+    expect(by).toBeCloseTo(sol.objective, 7);
+  });
+
+  it("matches the finite-difference marginal cost of a bound", () => {
+    const at = (p: number) => {
+      const r = planMeal(foods, {
+        protein: { min: p },
+        calories: { min: 300 },
+      });
+      if (!r.ok) throw new Error("infeasible");
+      return r.plan;
+    };
+    const base = at(20);
+    const sp = base.shadowPrices.find((s) => s.nutrient === "protein")!;
+    expect(sp.marginalCost).toBeGreaterThan(0);
+    expect(at(21).cost - base.cost).toBeCloseTo(sp.marginalCost, 6);
+  });
+
+  it("flags only binding targets; max rows have non-positive duals", () => {
+    const r = planMeal(foods, {
+      calories: { min: 300 },
+      protein: { min: 6, max: 1000 },
+    });
+    if (!r.ok) throw new Error("infeasible");
+    const ex = explain(r.plan);
+    const names = ex.binding.map((b) => `${b.nutrient}.${b.kind}`);
+    expect(names).toContain("calories.min");
+    expect(names).not.toContain("protein.max");
+    for (const s of r.plan.shadowPrices)
+      if (s.kind === "max") expect(s.marginalCost).toBeLessThanOrEqual(0);
+    expect(ex.binding[0]!.text).toMatch(/calories minimum/);
+  });
+
+  it("reports foods held at their serving cap", () => {
+    const r = planMeal(
+      foods,
+      { calories: { min: 300 } },
+      { perFood: { b: 1 } },
+    );
+    if (!r.ok) throw new Error("infeasible");
+    expect(r.plan.capped.map((c) => c.food.id)).toEqual(["b"]);
+    expect(explain(r.plan).summary.join(" ")).toMatch(/cap/);
+  });
+
+  it("says so when nothing is binding", () => {
+    const r = planMeal(foods, { calories: { max: 5000 } });
+    if (!r.ok) throw new Error("infeasible");
+    expect(explain(r.plan).summary[0]).toMatch(/No target/);
+  });
+
+  it("filters diet presets on the real database", () => {
+    const vegan = filterByDiet(FOODS, "vegan");
+    const veg = filterByDiet(FOODS, "vegetarian");
+    expect(vegan.length).toBeGreaterThan(10);
+    expect(vegan.every((f) => f.diet === "vegan")).toBe(true);
+    expect(veg.length).toBeGreaterThan(vegan.length);
+    expect(veg.some((f) => f.diet === "omnivore")).toBe(false);
+    expect(filterByDiet(FOODS, "omnivore")).toHaveLength(FOODS.length);
+    const r = planMeal(vegan, {
+      calories: { min: 2000 },
+      protein: { min: 80 },
+    });
+    expect(r.ok).toBe(true);
   });
 });

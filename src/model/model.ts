@@ -38,10 +38,24 @@ export interface PlanLine {
   cost: number;
 }
 
+/** Sensitivity of the optimal cost to one nutrient bound. */
+export interface ShadowPrice {
+  nutrient: NutrientId;
+  kind: "min" | "max";
+  /** The bound the user asked for. */
+  bound: number;
+  /** Extra daily cost (USD) per +1 unit of the bound; <= 0 for a max. */
+  marginalCost: number;
+}
+
 export interface Plan {
   lines: PlanLine[];
   cost: number;
   totals: Record<NutrientId, number>;
+  /** One entry per nutrient bound, in constraint order. */
+  shadowPrices: ShadowPrice[];
+  /** Foods held at their serving cap that would otherwise be used more. */
+  capped: { food: Food; cap: number; savingPerServing: number }[];
 }
 
 export type PlanResult =
@@ -131,5 +145,26 @@ export function planMeal(
     if (servings > 0)
       lines.push({ food: f, servings, cost: servings * f.price });
   });
-  return { ok: true, plan: { lines, cost: sol.objective, totals } };
+  const shadowPrices = model.rows.map((row, i) => ({
+    nutrient: row.nutrient,
+    kind: row.kind,
+    bound: model.problem.constraints[i]!.b,
+    marginalCost: sol.duals[i] ?? 0,
+  }));
+  // Bound rows follow the nutrient rows, one per food (all caps are finite).
+  const capped: Plan["capped"] = [];
+  const base = model.rows.length;
+  foods.forEach((f, j) => {
+    const dual = sol.duals[base + j] ?? 0;
+    if (dual < -EPS)
+      capped.push({
+        food: f,
+        cap: model.problem.constraints[base + j]!.b,
+        savingPerServing: -dual,
+      });
+  });
+  return {
+    ok: true,
+    plan: { lines, cost: sol.objective, totals, shadowPrices, capped },
+  };
 }

@@ -46,7 +46,7 @@ bash check.sh     # format, types, lint, tests, build (same as CI)
 ## Roadmap
 - [x] Day 1: scaffold, CI, simplex solver with tests
 - [x] Day 2: food database and nutrition model builder
-- [ ] Day 3: shadow prices and plan explanations
+- [x] Day 3: shadow prices and plan explanations
 - [ ] Day 4: UI, Pages deploy
 - [ ] Day 5: design system, light/dark, mobile
 - [ ] Day 6: Playwright e2e and performance benchmark
