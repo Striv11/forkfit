@@ -16,3 +16,9 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Tests (`tests/model.test.ts`): DB sanity (unique ids, macros vs calories), a Stigler-style 9-nutrient problem with a hand-derived optimum (40/3) and dual certificate, per-food caps, infeasible/invalid/no-foods errors, and a realistic day on the real DB.
 - Learned: vitest only picks up `tests/**`; a test placed in `src/` silently doesn't run. `noUncheckedIndexedAccess` is on, so indexed reads need `?? 0`.
 - Next: Day 3, duals/shadow prices from the final tableau and `explain(plan)`, diet presets.
+
+## 2026-11-24 (Day 3)
+- Solver now returns `duals` (shadow prices) from the final tableau: the reduced cost of each row's slack/surplus/artificial column, sign-corrected for rows negated during normalisation. Tests: strong duality `b·y = c·x` with mixed `<=`/`>=`/`=` and negated rows, and duals equal to finite-difference derivatives of the optimum.
+- `planMeal` plans now carry `shadowPrices` (per nutrient bound) and `capped` (foods held at a serving cap). New `src/model/explain.ts`: `explain(plan)` names binding targets sorted by marginal cost, and `filterByDiet` provides vegan/vegetarian presets.
+- Learned: a dual is only a local derivative; the finite-difference test uses a small step to stay within the same basis. Cap rows come after nutrient rows, so their duals give "one more serving saves $X" for free.
+- Next: Day 4, UI v1: targets form, plan table, empty/error states, Pages deploy.

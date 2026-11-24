@@ -18,10 +18,11 @@ Hitting nutrition targets (calories, protein, fibre, a sodium ceiling...) while 
 ```
  foods.json ─┐
  targets  ───┼─► model builder ─► simplex solver ─► plan + explanations ─► UI
- prefs    ───┘   (Day 2, done)     (Day 1, done)       (Days 3-4)
+ prefs    ───┘   (Day 2, done)     (Day 1, done)       (Day 3 done; UI Day 4)
 ```
-- `src/solver/simplex.ts`: dense two-phase tableau simplex. Minimises `c·x` s.t. `Ax {<=,>=,=} b`, `x >= 0`; upper bounds via `withUpperBounds`. Returns `optimal | infeasible | unbounded`.
+- `src/solver/simplex.ts`: dense two-phase tableau simplex. Minimises `c·x` s.t. `Ax {<=,>=,=} b`, `x >= 0`; upper bounds via `withUpperBounds`. Returns `optimal | infeasible | unbounded`, plus shadow prices (`duals`) read from the final tableau.
 - `src/model/`: `foods.ts` (59 foods, 9 nutrients, diet tag) and `model.ts` (`buildProblem` maps foods + min/max nutrient targets + per-food serving caps to an LP; `planMeal` returns `{ok, plan}` or a typed error: `infeasible | unbounded | no-foods | invalid-input`).
+- `src/model/explain.ts`: `explain(plan)` turns shadow prices into sentences ("each extra g of protein costs ~$0.04/day", "X is at its cap"); `filterByDiet` implements vegan/vegetarian presets.
 - `src/ui/` (planned): vanilla TypeScript + Vite, static build.
 
 Invariants: solver never returns a point violating a constraint beyond 1e-7; `x >= 0` always; malformed input throws.
