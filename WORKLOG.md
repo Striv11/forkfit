@@ -22,3 +22,11 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - `planMeal` plans now carry `shadowPrices` (per nutrient bound) and `capped` (foods held at a serving cap). New `src/model/explain.ts`: `explain(plan)` names binding targets sorted by marginal cost, and `filterByDiet` provides vegan/vegetarian presets.
 - Learned: a dual is only a local derivative; the finite-difference test uses a small step to stay within the same basis. Cap rows come after nutrient rows, so their duals give "one more serving saves $X" for free.
 - Next: Day 4, UI v1: targets form, plan table, empty/error states, Pages deploy.
+
+## 2026-11-25 (Day 4)
+- UI v1: targets form with presets, diet select, budget, serving cap; empty state before the first solve; plan table (foods, servings, cost), nutrient totals, "Why this plan?" from `explain()`; an alert state for infeasible targets with a hint; per-field validation messages. Enter submits the form.
+- Split for testability: `src/ui/form.ts` (parse/validate, presets), `src/ui/view.ts` (pure HTML-string renderers with escaping), `main.ts` (DOM wiring only). 8 new tests in `tests/ui.test.ts` cover parsing, every preset, the infeasible alert, budget over/under, and escaping.
+- Budget is a check on the cheapest plan, not a constraint: if even the minimum cost exceeds it, the UI says by how much.
+- Learned: my first "impossible" preset (4000 kcal, 300 g protein, cap 2) was actually feasible; the tests caught it. Needed a 1-serving cap and 400 g protein.
+- Not verified: the live Pages URL (no network/credentials here), so the Day 4 PLAN row is marked partial.
+- Next: Day 5, CSS tokens with light/dark, 360 px layout, `/` `Enter` `?` shortcuts, landing section, loading state; confirm the Pages deploy.

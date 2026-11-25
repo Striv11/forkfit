@@ -1,0 +1,72 @@
+body {
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  gap: 0.2rem;
+}
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+}
+button {
+  cursor: pointer;
+  align-self: end;
+}
+.field-error {
+  color: #b00020;
+  min-height: 1.2em;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+caption {
+  text-align: left;
+  font-weight: 600;
+}
+th,
+td {
+  border-bottom: 1px solid #8884;
+  padding: 0.3rem 0.5rem;
+  text-align: right;
+}
+th[scope="row"],
+thead th {
+  text-align: left;
+}
+small {
+  display: block;
+  opacity: 0.7;
+  font-weight: normal;
+}
+.empty,
+.error {
+  padding: 1rem;
+  border: 1px dashed #8886;
+  border-radius: 0.5rem;
+}
+.error {
+  border-color: #b00020;
+}
+.warn {
+  color: #b00020;
+}
+.ok {
+  color: #1b6e2e;
+}
