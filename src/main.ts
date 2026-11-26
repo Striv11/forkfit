@@ -3,7 +3,21 @@ import { filterByDiet } from "./model/explain";
 import { planMeal } from "./model/model";
 import { PRESETS, parseForm, type FormValues } from "./ui/form";
 import { esc, renderEmpty, renderResult } from "./ui/view";
+import {
+  renderHelp,
+  renderLanding,
+  renderLoading,
+  resolveTheme,
+  shortcutAction,
+} from "./ui/shortcuts";
 import "./ui/style.css";
+
+const THEME_KEY = "forkfit-theme";
+const applyTheme = (t: string) => {
+  document.documentElement.dataset.theme = t;
+};
+const systemDark = () => matchMedia("(prefers-color-scheme: dark)").matches;
+applyTheme(resolveTheme(localStorage.getItem(THEME_KEY), systemDark()));
 
 const FIELDS: { key: keyof FormValues; label: string; hint: string }[] = [
   { key: "calories", label: "Calories (kcal, ±5%)", hint: "2000" },
@@ -17,6 +31,10 @@ const FIELDS: { key: keyof FormValues; label: string; hint: string }[] = [
 const app = document.getElementById("app");
 if (app) {
   app.innerHTML = `<header><h1>forkfit</h1>
+    <div class="toolbar">
+      <button type="button" id="help-btn" aria-label="Keyboard shortcuts (?)">?</button>
+      <button type="button" id="theme-btn" aria-label="Toggle dark mode">◐</button>
+    </div>
     <p>Cheapest meal plan that hits your targets. Runs entirely in your browser.</p></header>
     <form id="form" novalidate>
       <label>Preset
@@ -34,7 +52,8 @@ if (app) {
       </label>
       <button type="submit">Plan my day</button>
     </form>
-    <section id="result" aria-live="polite">${renderEmpty()}</section>`;
+    <section id="result" aria-live="polite">${renderEmpty()}</section>
+    ${renderLanding()}${renderHelp()}`;
 
   const form = document.getElementById("form") as HTMLFormElement;
   const result = document.getElementById("result") as HTMLElement;
@@ -64,6 +83,32 @@ if (app) {
     form.requestSubmit();
   });
 
+  const help = document.getElementById("help") as HTMLDialogElement;
+  document
+    .getElementById("help-btn")
+    ?.addEventListener("click", () => help.showModal());
+  document.getElementById("theme-btn")?.addEventListener("click", () => {
+    const next =
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
+  document.addEventListener("keydown", (ev) => {
+    const t = ev.target;
+    const typing =
+      t instanceof HTMLInputElement ||
+      t instanceof HTMLSelectElement ||
+      t instanceof HTMLTextAreaElement;
+    const action = shortcutAction(ev, typing);
+    if (action === "focus-form") {
+      ev.preventDefault();
+      form.querySelector<HTMLElement>("input")?.focus();
+    } else if (action === "help") {
+      ev.preventDefault();
+      if (!help.open) help.showModal();
+    } else if (action === "close-help" && help.open) help.close();
+  });
+
   form.addEventListener("submit", (ev) => {
     ev.preventDefault();
     for (const f of FIELDS) {
@@ -80,7 +125,11 @@ if (app) {
       return;
     }
     const { targets, diet, limits, budget } = parsed.value;
-    const r = planMeal(filterByDiet(FOODS, diet), targets, limits);
-    result.innerHTML = renderResult(r, budget);
+    result.innerHTML = renderLoading();
+    // Yield so the loading state paints before the (synchronous) solve.
+    setTimeout(() => {
+      const r = planMeal(filterByDiet(FOODS, diet), targets, limits);
+      result.innerHTML = renderResult(r, budget);
+    }, 0);
   });
 }

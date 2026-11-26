@@ -30,3 +30,10 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Learned: my first "impossible" preset (4000 kcal, 300 g protein, cap 2) was actually feasible; the tests caught it. Needed a 1-serving cap and 400 g protein.
 - Not verified: the live Pages URL (no network/credentials here), so the Day 4 PLAN row is marked partial.
 - Next: Day 5, CSS tokens with light/dark, 360 px layout, `/` `Enter` `?` shortcuts, landing section, loading state; confirm the Pages deploy.
+
+## 2026-11-26 (Day 5)
+- Design system: CSS tokens (spacing, type scale, radius, colours) in `style.css`, light and dark palettes via `data-theme`; theme defaults to the system preference and the toggle is persisted in localStorage. Tables scroll horizontally in a wrapper, the form grid uses `min(14rem, 100%)` so a 360 px viewport doesn't overflow, inputs have 44 px touch targets and a visible focus ring.
+- Shortcuts: `/` focuses the form, `?` opens a help dialog, `Esc` closes it, `Enter` still submits natively. Key mapping is a pure function (`shortcutAction`) so it is unit-tested, including "don't hijack typing" and modifier keys. Added landing section and a loading state (solve deferred with `setTimeout` so it paints).
+- 8 new tests (`tests/shortcuts.test.ts`); check.sh green.
+- Not verified: actual rendering at 360 px and contrast in a browser (none available here). Day 6 Playwright should cover it.
+- Next: Day 6, Playwright e2e (empty state, preset solve, infeasible, dark toggle) and a 200-food benchmark asserted under 50 ms.

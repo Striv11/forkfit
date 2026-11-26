@@ -66,8 +66,8 @@ export function renderResult(result: PlanResult, budget?: number): string {
   return `<div data-state="plan">
     <h2>Cheapest plan: <span class="cost">${usd(plan.cost)}</span>/day</h2>
     ${budgetNote}
-    <table><caption>Foods</caption><thead><tr><th>Food</th><th>Servings</th><th>Cost</th></tr></thead><tbody>${rows}</tbody></table>
-    <table><caption>Nutrient totals</caption><tbody>${totals}</tbody></table>
+    <div class="table-wrap"><table><caption>Foods</caption><thead><tr><th>Food</th><th>Servings</th><th>Cost</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="table-wrap"><table><caption>Nutrient totals</caption><tbody>${totals}</tbody></table></div>
     <h3>Why this plan?</h3><ul>${why}</ul>
   </div>`;
 }
