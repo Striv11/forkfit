@@ -37,3 +37,10 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - 8 new tests (`tests/shortcuts.test.ts`); check.sh green.
 - Not verified: actual rendering at 360 px and contrast in a browser (none available here). Day 6 Playwright should cover it.
 - Next: Day 6, Playwright e2e (empty state, preset solve, infeasible, dark toggle) and a 200-food benchmark asserted under 50 ms.
+
+## 2026-11-27 (Day 6)
+- Added Playwright (`e2e/app.spec.ts`, `playwright.config.ts`): empty state, preset solve, Enter solves, infeasible alert, dark toggle persists across reload, `?` `Esc` `/` shortcuts, and a no-horizontal-overflow check. Runs in two projects, desktop (1280 px) and mobile (360 px): 14 tests pass locally in real Chromium, which also covers the 360 px layout that was unverified on Day 5.
+- e2e runs as its own CI job (`npx playwright test`, which builds and serves via `vite preview`); it is not part of `check.sh` because it needs a downloaded browser.
+- Benchmark (`tests/benchmark.test.ts`): 200 synthetic foods (perturbed copies of the real DB) with 4 target rows, median of 5 solves asserted under 50 ms; passes in `check.sh`.
+- Not done: the overflow check is only a scrollWidth test, not a visual review of contrast.
+- Next: Day 7, custom foods in localStorage, shareable URL, screenshots, axe a11y pass.

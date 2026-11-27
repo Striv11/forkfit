@@ -35,6 +35,7 @@ Requires Node 22+.
 npm ci
 npm test          # unit tests
 npm run dev       # dev server
+npm run e2e       # Playwright (needs `npx playwright install chromium`)
 bash check.sh     # format, types, lint, tests, build (same as CI)
 ```
 
@@ -52,7 +53,7 @@ bash check.sh     # format, types, lint, tests, build (same as CI)
 - [x] Day 3: shadow prices and plan explanations
 - [x] Day 4: UI (Pages deploy runs on push; link unverified)
 - [x] Day 5: design system, light/dark, mobile
-- [ ] Day 6: Playwright e2e and performance benchmark
+- [x] Day 6: Playwright e2e and performance benchmark
 - [ ] Day 7: polish, screenshots, docs
 See [PLAN.md](PLAN.md).
 
