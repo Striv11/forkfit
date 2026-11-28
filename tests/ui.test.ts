@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { FOODS } from "../src/model/foods";
 import { filterByDiet } from "../src/model/explain";
 import { planMeal } from "../src/model/model";
-import { PRESETS, parseForm, type FormValues } from "../src/ui/form";
+import {
+  PRESETS,
+  formToQuery,
+  parseForm,
+  queryToForm,
+  type FormValues,
+} from "../src/ui/form";
 import { esc, renderEmpty, renderResult } from "../src/ui/view";
 
 const base = PRESETS[0]!.values;
@@ -75,5 +81,26 @@ describe("views", () => {
     expect(esc(`<img onerror="x">&'`)).toBe(
       "&lt;img onerror=&quot;x&quot;&gt;&amp;&#39;",
     );
+  });
+});
+
+describe("shareable URL", () => {
+  it("round-trips every preset", () => {
+    for (const p of PRESETS) {
+      expect(queryToForm(formToQuery(p.values))).toEqual(p.values);
+    }
+  });
+  it("omits empty fields and returns null without known keys", () => {
+    const q = formToQuery({ ...PRESETS[0]!.values, fibre: "", budget: " " });
+    expect(q).not.toContain("fibre");
+    expect(q).not.toContain("budget");
+    expect(queryToForm("")).toBeNull();
+    expect(queryToForm("?utm=1")).toBeNull();
+  });
+  it("passes bad values through so parseForm reports them", () => {
+    const v = queryToForm("?calories=abc&diet=vegan");
+    expect(v?.diet).toBe("vegan");
+    const r = parseForm(v!);
+    expect(r.ok).toBe(false);
   });
 });

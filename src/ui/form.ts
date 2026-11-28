@@ -136,3 +136,50 @@ export function parseForm(values: FormValues): ParseResult {
   if (budget !== undefined) value.budget = budget;
   return { ok: true, value };
 }
+
+const FORM_KEYS: (keyof FormValues)[] = [
+  "calories",
+  "protein",
+  "fibre",
+  "sodiumMax",
+  "budget",
+  "diet",
+  "maxServings",
+];
+
+/** Serialises non-empty form values to a query string (no leading "?"). */
+export function formToQuery(values: FormValues): string {
+  const p = new URLSearchParams();
+  for (const k of FORM_KEYS) {
+    const v = (values[k] ?? "").trim();
+    if (v !== "") p.set(k, v);
+  }
+  return p.toString();
+}
+
+/**
+ * Reads form values back from a query string. Unknown keys are ignored.
+ * Returns null when no known key is present. Values are not validated here;
+ * `parseForm` does that, so a hand-edited URL gets normal field errors.
+ */
+export function queryToForm(query: string): FormValues | null {
+  const p = new URLSearchParams(query);
+  const out: FormValues = {
+    calories: "",
+    protein: "",
+    fibre: "",
+    sodiumMax: "",
+    budget: "",
+    diet: "omnivore",
+    maxServings: "",
+  };
+  let found = false;
+  for (const k of FORM_KEYS) {
+    const v = p.get(k);
+    if (v !== null) {
+      out[k] = v.slice(0, 32);
+      found = true;
+    }
+  }
+  return found ? out : null;
+}

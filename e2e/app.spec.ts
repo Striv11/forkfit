@@ -64,3 +64,16 @@ test("no horizontal overflow after solving (360 px check)", async ({
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("solving updates the URL and a shared link restores the plan", async ({
+  page,
+}) => {
+  await page.selectOption("#preset", "vegan");
+  await expect(page.locator('[data-state="plan"]')).toBeVisible();
+  const url = page.url();
+  expect(url).toContain("calories=2200");
+  await page.goto(url);
+  await expect(page.locator('[data-state="plan"]')).toBeVisible();
+  await expect(page.locator('input[name="protein"]')).toHaveValue("80");
+  await expect(page.locator('select[name="diet"]')).toHaveValue("vegan");
+});

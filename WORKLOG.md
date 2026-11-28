@@ -44,3 +44,8 @@ Newest entries at the bottom. Each entry records what actually changed, what was
 - Benchmark (`tests/benchmark.test.ts`): 200 synthetic foods (perturbed copies of the real DB) with 4 target rows, median of 5 solves asserted under 50 ms; passes in `check.sh`.
 - Not done: the overflow check is only a scrollWidth test, not a visual review of contrast.
 - Next: Day 7, custom foods in localStorage, shareable URL, screenshots, axe a11y pass.
+
+## 2026-11-28 (Day 7, part 1)
+- Shareable URL: `formToQuery`/`queryToForm` in `src/ui/form.ts`. A successful solve writes the targets to the query string (`history.replaceState`); loading a URL with known keys prefills the form and solves immediately. Unknown keys are ignored, values are length-capped and still go through `parseForm`, so a hand-edited link yields normal field errors. 3 new unit tests (round-trip over all presets, empty/unknown, bad values).
+- Added an e2e test (solve, check URL, reload the URL, plan and fields restored). Not run here: no Chromium in this environment, so it is unverified until CI. `check.sh` passes (47 tests).
+- Next: custom foods in localStorage, screenshots in README, axe a11y pass.

@@ -1,7 +1,13 @@
 import { FOODS } from "./model/foods";
 import { filterByDiet } from "./model/explain";
 import { planMeal } from "./model/model";
-import { PRESETS, parseForm, type FormValues } from "./ui/form";
+import {
+  PRESETS,
+  formToQuery,
+  parseForm,
+  queryToForm,
+  type FormValues,
+} from "./ui/form";
 import { esc, renderEmpty, renderResult } from "./ui/view";
 import {
   renderHelp,
@@ -125,6 +131,7 @@ if (app) {
       return;
     }
     const { targets, diet, limits, budget } = parsed.value;
+    history.replaceState(null, "", `?${formToQuery(read())}`);
     result.innerHTML = renderLoading();
     // Yield so the loading state paints before the (synchronous) solve.
     setTimeout(() => {
@@ -132,4 +139,15 @@ if (app) {
       result.innerHTML = renderResult(r, budget);
     }, 0);
   });
+
+  // Shareable URL: prefill from the query string and solve straight away.
+  const shared = queryToForm(location.search);
+  if (shared) {
+    for (const [k, v] of Object.entries(shared)) {
+      const el = form.elements.namedItem(k);
+      if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement)
+        el.value = v;
+    }
+    form.requestSubmit();
+  }
 }
